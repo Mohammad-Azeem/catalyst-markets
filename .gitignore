@@ -137,3 +137,352 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+//Main
+
+# Catalyst: Global Markets - .gitignore
+
+# ============================================
+# ENVIRONMENT VARIABLES
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+*.env
+
+# ============================================
+# NODE.JS / NPM
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# Package lock files (keep one, comment out others based on your package manager)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ============================================
+# NEXT.JS (FRONTEND)
+# ============================================
+.next/
+out/
+build/
+dist/
+
+# Next.js cache
+.next/cache/
+
+# Static files
+.vercel
+
+# ============================================
+# TYPESCRIPT
+# ============================================
+*.tsbuildinfo
+.tsbuildinfo
+
+# ============================================
+# PYTHON
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# ============================================
+# DATABASES
+# ============================================
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.pgsql
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS logs
+*.log.*
+logs/
+
+# ============================================
+# TESTING
+# ============================================
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Jest
+jest-coverage/
+
+# ============================================
+# IDEs / EDITORS
+# ============================================
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================
+# OPERATING SYSTEM
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+.docker/
+
+# ============================================
+# AWS / TERRAFORM
+# ============================================
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+
+# AWS
+.aws/
+
+# ============================================
+# SECRETS & KEYS
+# ============================================
+# SSH keys
+*.pem
+*.key
+*.pub
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# API keys
+secrets/
+credentials/
+*.credentials
+
+# Certificates
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# ============================================
+# BUILD ARTIFACTS
+# ============================================
+build/
+dist/
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# ============================================
+# CACHE
+# ============================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ============================================
+# MISC
+# ============================================
+# Backups
+*.bak
+*.backup
+*.old
+*.orig
+
+# Patches
+*.patch
+*.diff
+
+# Package manager files
+.yarn/
+.pnp.*
+
+# Bundle analyzer
+.next/analyze/
+analyze/
+
+# Sentry
+.sentryclirc
+
+# Datadog
+datadog-config.json
+
+# Documentation build
+site/
+
+# ============================================
+# PROJECT-SPECIFIC
+# ============================================
+# DRHP PDFs (large files, store in S3)
+backend/storage/drhp/*.pdf
+
+# Generated ML models
+backend/python_services/ml/models/*.pkl
+backend/python_services/ml/models/*.h5
+
+# Scraped data cache
+backend/python_services/scrapers/cache/
+
+# User uploads (local dev only)
+uploads/
+user-data/
+
+# Development databases
+*.dev.db
+
+# Seed data (if contains sensitive info)
+# prisma/seed-data.json
+
+# ============================================
+# KEEP THESE FILES (using negation)
+# ============================================
+!.gitkeep
+!.github/
+!.vscode/extensions.json
+!.vscode/settings.json.example
