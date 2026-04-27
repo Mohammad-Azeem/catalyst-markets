@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
 
+//V2 update
+// Simple utility to determine currency symbol based on exchange
+const getCurrencySymbol = (exchange: string) => {
+  return exchange === 'NASDAQ' || exchange === 'NSE' ? '$' : '₹';
+};
 interface ChartProps {
   symbol: string;
   exchange: string;
@@ -16,11 +21,7 @@ const TIMEFRAMES = [
   { label: '1Y', range: '1y', interval: '1d' },
 ];
 
-//V2 update
-// Simple utility to determine currency symbol based on exchange
-const getCurrencySymbol = (exchange: string) => {
-  return exchange === 'NASDAQ' || exchange === 'NYSE' ? '$' : '₹';
-};
+
 
 export default function StockChart({ symbol, exchange }: ChartProps) {
   const chartRef = useRef<any>(null);

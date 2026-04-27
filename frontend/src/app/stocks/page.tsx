@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Search, SlidersHorizontal } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import ValuationCard from '@/components/ValuationCard';
 
 interface Stock { id:number; symbol:string; name:string; exchange:string; sector:string; currentPrice:number; dayChange:number; dayChangePercent:number; volume:number; marketCap:number; }
 

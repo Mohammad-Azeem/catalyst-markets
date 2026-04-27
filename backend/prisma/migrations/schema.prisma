@@ -10,6 +10,29 @@ datasource db {
 }
 
 // ============================================
+// PRICE ALERT
+// ============================================
+
+model PriceAlert {
+  id            Int      @id @default(autoincrement())
+  userId        String
+  user          User     @relation(fields: [userId], references: [clerkId])
+  stockId       Int
+  stock         Stock    @relation(fields: [stockId], references: [id])
+  targetPrice   Decimal  @db.Decimal(10, 2)
+  condition     String   // 'ABOVE' or 'BELOW'
+  notified      Boolean  @default(false)
+  notifiedAt    DateTime?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([stockId])
+  @@index([active, notified])
+}
+
+// ============================================
 // USER MANAGEMENT
 // ============================================
 

@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Star, StarOff, RefreshCw } from 'lucide-react
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { stocksAPI } from '@/lib/api';
 import StockChart from '@/components/stockChart';  // ✅ Capital S
+import ValuationCard from '@/components/ValuationCard';
 
 interface StockDetail {
   id: number;
@@ -102,7 +103,7 @@ export default function StockDetailPage() {
           </h2>
           <StockChart symbol={symbol} exchange={stock.exchange} />
         </div>
-
+        
         {/* Metrics */}
         <div className="card" style={{ padding: 24 }}>
           <h2 style={{ fontSize: 16, marginBottom: 16, fontFamily: 'var(--font-head)' }}>

@@ -19,9 +19,11 @@
   "type": "module",
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",
-    "@prisma/adapter-pg": "^7.4.0",
+    "@clerk/express": "^1.7.75",
     "@prisma/client": "5.22.0",
-    "axios": "^1.13.5",
+    "axios": "^1.6.7",
+    "bull": "^4.16.5",
+    "cheerio": "^1.0.0-rc.12",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
@@ -30,14 +32,20 @@
     "ioredis": "^5.9.2",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
+    "openai": "^4.28.0",
     "p-limit": "^7.3.0",
-    "pg": "^8.18.0",
+    "resend": "^6.9.2",
     "tsx": "^4.21.0",
     "winston": "^3.19.0",
     "ws": "^8.19.0",
     "zod": "^4.3.6"
   },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
+  },
   "devDependencies": {
+    "@types/bull": "^3.15.9",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

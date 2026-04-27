@@ -34,7 +34,7 @@ export default function PortfolioPage() {
     try {
       //const { getToken } = useAuth();
       const token = await getToken();
-      
+
       const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
       const res = await fetch(`${base}/portfolio`, {
         headers: {

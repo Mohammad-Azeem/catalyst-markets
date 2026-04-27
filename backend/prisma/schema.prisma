@@ -1,7 +1,8 @@
 // Catalyst Markets - Database Schema
 generator client {
-  provider = "prisma-client-js"
-  engineType ="library"
+  provider        = "prisma-client-js"
+  engineType      = "library"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -14,21 +15,21 @@ datasource db {
 // ============================================
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  clerkId       String    @unique
-  fullName      String?
-  phoneNumber   String?
-  isPro         Boolean   @default(false)
-  proExpiresAt  DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  clerkId      String    @unique
+  fullName     String?
+  phoneNumber  String?
+  isPro        Boolean   @default(false)
+  proExpiresAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
   portfolios      Portfolio[]
   watchlists      Watchlist[]
   ipoApplications IpoApplication[]
   alerts          PriceAlert[]
-  
+
   @@index([email])
   @@index([clerkId])
 }
@@ -38,68 +39,98 @@ model User {
 // ============================================
 
 model IPO {
-  id                    Int       @id @default(autoincrement())
-  companyName           String    
-  issueSizeCr           Decimal   @db.Decimal(10, 2)
-  priceBandLow          Decimal   @db.Decimal(10, 2)
-  priceBandHigh         Decimal   @db.Decimal(10, 2)
-  openDate              DateTime
-  closeDate             DateTime
-  listingDate           DateTime?
-  lotSize               Int
-  
-  // GMP Data
-  gmpValue              Decimal?  @db.Decimal(10, 2)
-  gmpPercent            Decimal?  @db.Decimal(5, 2)
-  gmpLastUpdated        DateTime?
-  
-  // Subscription Data
-  retailSubscription    Decimal?  @db.Decimal(10, 2)
-  hniSubscription       Decimal?  @db.Decimal(10, 2)
-  qibSubscription       Decimal?  @db.Decimal(10, 2)
-  totalSubscription     Decimal?  @db.Decimal(10, 2)
-  subscriptionLastUpdated DateTime?
-  
-  // DRHP Extraction
-  drhpUrl               String?
-  revenue3yrCagr        Decimal?  @db.Decimal(5, 2)
-  profitMarginAvg       Decimal?  @db.Decimal(5, 2)
-  debtToEquity          Decimal?  @db.Decimal(5, 2)
-  promoterHoldingPercent Decimal? @db.Decimal(5, 2)
-  peRatio               Decimal?  @db.Decimal(10, 2)
-  industry              String?
-  
-  // Advisor Output
-  advisorVerdict        String?   // APPLY, NEUTRAL, AVOID
-  advisorScore          Int?
-  advisorFlags          String[]
-  advisorReasoning      String?   @db.Text
-  
+  id          Int    @id @default(autoincrement())
+  companyName String @unique
+
+  // Classification
+  type     String @default("MAINBOARD") // MAINBOARD, SME
+  exchange String @default("NSE") // NSE, BSE
+
+  // Issue Details
+  issueSizeCr   Decimal  @db.Decimal(10, 2)
+  priceBandLow  Decimal  @db.Decimal(10, 2)
+  priceBandHigh Decimal  @db.Decimal(10, 2)
+  faceValue     Decimal? @db.Decimal(10, 2)
+  lotSize       Int
+  minInvestment Int?
+
+  // Dates
+  openDate       DateTime
+  closeDate      DateTime
+  basisAllotment DateTime? // Allotment finalization
+  refundDate     DateTime?
+  creditDate     DateTime? // Demat credit
+  listingDate    DateTime?
+
   // Status
-  status                String    @default("UPCOMING") // UPCOMING, OPEN, CLOSED, LISTED
-  
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  
-  applications          IpoApplication[]
-  
-  @@index([openDate, closeDate])
-  @@index([listingDate])
+  status String @default("UPCOMING") // UPCOMING, OPEN, CLOSED, ALLOTTED, LISTED
+
+  // Subscription (live updates)
+  qibTimes      Decimal? @db.Decimal(10, 2)
+  niiTimes      Decimal? @db.Decimal(10, 2) // Non-institutional (HNI)
+  bhniiTimes    Decimal? @db.Decimal(10, 2) // Big HNI (>10L)
+  shniiTimes    Decimal? @db.Decimal(10, 2) // Small HNI (2-10L)
+  retailTimes   Decimal? @db.Decimal(10, 2)
+  employeeTimes Decimal? @db.Decimal(10, 2)
+  otherTimes    Decimal? @db.Decimal(10, 2)
+  totalTimes    Decimal? @db.Decimal(10, 2)
+
+  // GMP & Market Sentiment
+  gmpPercent      Decimal? @db.Decimal(5, 2)
+  gmpPrice        Decimal? @db.Decimal(10, 2)
+  expectedListing String? // "Flat", "Gain 10-15%", "Premium 20%+"
+
+  // Allotment Probability (calculated)
+  qibProbability    Int? // 0-100
+  niiProbability    Int?
+  retailProbability Int?
+
+  // Financials
+  revenue         Decimal? @db.Decimal(15, 2)
+  profit          Decimal? @db.Decimal(15, 2)
+  peRatio         Decimal? @db.Decimal(10, 2)
+  roe             Decimal? @db.Decimal(5, 2)
+  debtToEquity    Decimal? @db.Decimal(10, 2)
+  promoterHolding Decimal? @db.Decimal(5, 2)
+
+  // Issue Composition
+  freshIssue   Decimal? @db.Decimal(10, 2) // Cr
+  offerForSale Decimal? @db.Decimal(10, 2) // Cr
+
+  // Lead Managers & Registrar
+  leadManager String?
+  registrar   String? // Link Intime, KFintech, etc.
+
+  // Advisor
+  advisorVerdict   String? // APPLY, AVOID, NEUTRAL
+  advisorScore     Decimal? @db.Decimal(3, 1)
+  advisorReasoning String?  @db.Text
+
+  // Metadata
+  lastGmpUpdate  DateTime?
+  lastSubUpdate  DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  IpoApplication IpoApplication[]
+
   @@index([status])
+  @@index([closeDate])
+  @@index([type])
+  @@index([openDate, closeDate])
 }
 
 model IpoApplication {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  ipoId             Int
-  applied           Boolean   @default(false)
-  lotCount          Int?
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ipo               IPO       @relation(fields: [ipoId], references: [id])
-  
-  appliedAt         DateTime  @default(now())
-  
+  id       Int     @id @default(autoincrement())
+  userId   Int
+  ipoId    Int
+  applied  Boolean @default(false)
+  lotCount Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipo  IPO  @relation(fields: [ipoId], references: [id])
+
+  appliedAt DateTime @default(now())
+
   @@unique([userId, ipoId])
   @@index([userId])
   @@index([ipoId])
@@ -110,44 +141,64 @@ model IpoApplication {
 // ============================================
 
 model Stock {
-  id                Int       @id @default(autoincrement())
-  symbol            String    @unique
-  name              String
-  exchange          String    // NSE, NASDAQ, NYSE, LSE, EURONEXT
-  sector            String?
-  industry          String?
-  marketCap         Decimal?  @db.Decimal(15, 2)
-  
+  id        Int      @id @default(autoincrement())
+  symbol    String   @unique
+  name      String
+  exchange  String // NSE, NASDAQ, NYSE, LSE, EURONEXT
+  sector    String?
+  industry  String?
+  marketCap Decimal? @db.Decimal(15, 2)
+
   // Current Price Data
-  currentPrice      Decimal   @db.Decimal(10, 2)
-  dayChange         Decimal   @db.Decimal(10, 2)
-  dayChangePercent  Decimal   @db.Decimal(5, 2)
-  volume            BigInt
-  avgVolume20Day    BigInt?
-  high52Week        Decimal?  @db.Decimal(10, 2)
-  low52Week         Decimal?  @db.Decimal(10, 2)
-  
+  currentPrice     Decimal  @db.Decimal(10, 2)
+  dayChange        Decimal  @db.Decimal(10, 2)
+  dayChangePercent Decimal  @db.Decimal(5, 2)
+  volume           BigInt
+  avgVolume20Day   BigInt?
+  high52Week       Decimal? @db.Decimal(10, 2)
+  low52Week        Decimal? @db.Decimal(10, 2)
+
   // Technical Indicators
-  sma20             Decimal?  @db.Decimal(10, 2)
-  sma50             Decimal?  @db.Decimal(10, 2)
-  sma200            Decimal?  @db.Decimal(10, 2)
-  rsi               Decimal?  @db.Decimal(5, 2)
-  
-  // Fundamental Data
-  peRatio           Decimal?  @db.Decimal(10, 2)
-  pbRatio           Decimal?  @db.Decimal(10, 2)
-  dividendYield     Decimal?  @db.Decimal(5, 2)
-  
-  lastUpdated       DateTime  @default(now())
-  createdAt         DateTime  @default(now())
-  
-  portfolios        PortfolioStock[]
-  watchlists        WatchlistStock[]
-  alerts            PriceAlert[]
-  
+  sma20  Decimal? @db.Decimal(10, 2)
+  sma50  Decimal? @db.Decimal(10, 2)
+  sma200 Decimal? @db.Decimal(10, 2)
+  rsi    Decimal? @db.Decimal(5, 2)
+
+  // ✅ NEW - Valuation Metrics
+  peRatio       Decimal? @db.Decimal(10, 2)
+  pbRatio       Decimal? @db.Decimal(10, 2)
+  pegRatio      Decimal? @db.Decimal(10, 2)
+  debtToEquity  Decimal? @db.Decimal(10, 2)
+  roe           Decimal? @db.Decimal(5, 2) // Return on Equity
+  roce          Decimal? @db.Decimal(5, 2) // Return on Capital Employed
+  dividendYield Decimal? @db.Decimal(5, 2)
+  bookValue     Decimal? @db.Decimal(10, 2)
+  eps           Decimal? @db.Decimal(10, 2) // Earnings Per Share
+  revenue       Decimal? @db.Decimal(15, 2) // TTM Revenue (Cr)
+  profit        Decimal? @db.Decimal(15, 2) // TTM Profit (Cr)
+
+  // ✅ NEW - Quality Metrics
+  qualityScore Int? // 0-10 based on fundamentals
+  moatRating   String? // NONE, NARROW, WIDE
+
+  // ✅ NEW - Intrinsic Value
+  intrinsicValue Decimal? @db.Decimal(10, 2) // Graham formula
+  fairValue      Decimal? @db.Decimal(10, 2) // DCF or PE-based
+  valuationGap   Decimal? @db.Decimal(5, 2) // % from fair value
+
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  portfolios PortfolioStock[]
+  watchlists WatchlistStock[]
+  alerts     PriceAlert[]
+
+  @@index([symbol])
   @@index([exchange, symbol])
   @@index([lastUpdated])
   @@index([exchange])
+  @@index([sector])
+  @@index([qualityScore])
 }
 
 // ============================================
@@ -155,35 +206,35 @@ model Stock {
 // ============================================
 
 model Portfolio {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  name              String
-  description       String?
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stocks            PortfolioStock[]
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  name        String
+  description String?
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stocks PortfolioStock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
 }
 
 model PortfolioStock {
-  id                Int       @id @default(autoincrement())
-  portfolioId       Int
-  stockId           Int
-  
-  buyPrice          Decimal   @db.Decimal(10, 2)
-  quantity          Int
-  buyDate           DateTime
-  notes             String?
-  
-  portfolio         Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  stock             Stock     @relation(fields: [stockId], references: [id])
-  
-  createdAt         DateTime  @default(now())
-  
+  id          Int @id @default(autoincrement())
+  portfolioId Int
+  stockId     Int
+
+  buyPrice Decimal  @db.Decimal(10, 2)
+  quantity Int
+  buyDate  DateTime
+  notes    String?
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  stock     Stock     @relation(fields: [stockId], references: [id])
+
+  createdAt DateTime @default(now())
+
   @@unique([portfolioId, stockId])
   @@index([portfolioId])
 }
@@ -193,29 +244,29 @@ model PortfolioStock {
 // ============================================
 
 model Watchlist {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  name              String    @default("My Watchlist")
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stocks            WatchlistStock[]
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id     Int    @id @default(autoincrement())
+  userId Int
+  name   String @default("My Watchlist")
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stocks WatchlistStock[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
 }
 
 model WatchlistStock {
-  id                Int       @id @default(autoincrement())
-  watchlistId       Int
-  stockId           Int
-  
-  watchlist         Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
-  stock             Stock     @relation(fields: [stockId], references: [id])
-  
-  addedAt           DateTime  @default(now())
-  
+  id          Int @id @default(autoincrement())
+  watchlistId Int
+  stockId     Int
+
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  stock     Stock     @relation(fields: [stockId], references: [id])
+
+  addedAt DateTime @default(now())
+
   @@unique([watchlistId, stockId])
   @@index([watchlistId])
 }
@@ -225,22 +276,22 @@ model WatchlistStock {
 // ============================================
 
 model PriceAlert {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  stockId           Int
-  
-  targetPrice       Decimal   @db.Decimal(10, 2)
-  condition         String    // ABOVE, BELOW
-  isActive          Boolean   @default(true)
-  triggered         Boolean   @default(false)
-  triggeredAt       DateTime?
-  notificationSent  Boolean   @default(false)
-  
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stock             Stock     @relation(fields: [stockId], references: [id])
-  
-  createdAt         DateTime  @default(now())
-  
+  id      Int    @id @default(autoincrement())
+  userId  String
+  stockId Int
+
+  targetPrice      Decimal   @db.Decimal(10, 2)
+  condition        String // ABOVE, BELOW
+  isActive         Boolean   @default(true)
+  triggered        Boolean   @default(false)
+  triggeredAt      DateTime?
+  notificationSent Boolean   @default(false)
+
+  user  User  @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+  stock Stock @relation(fields: [stockId], references: [id])
+
+  createdAt DateTime @default(now())
+
   @@index([userId, isActive])
   @@index([stockId, isActive])
 }
@@ -250,20 +301,20 @@ model PriceAlert {
 // ============================================
 
 model FearGreedHistory {
-  id                Int       @id @default(autoincrement())
-  market            String    @default("INDIA") // INDIA, US, EU
-  score             Int       // 0-100
-  sentiment         String    // EXTREME_FEAR, FEAR, NEUTRAL, GREED, EXTREME_GREED
-  
+  id        Int    @id @default(autoincrement())
+  market    String @default("INDIA") // INDIA, US, EU
+  score     Int // 0-100
+  sentiment String // EXTREME_FEAR, FEAR, NEUTRAL, GREED, EXTREME_GREED
+
   // Contributing Factors
-  vixValue          Decimal?  @db.Decimal(5, 2)
-  putCallRatio      Decimal?  @db.Decimal(5, 2)
-  marketMomentum    String?   // BULLISH, BEARISH, NEUTRAL
-  fiiNetFlow        Decimal?  @db.Decimal(10, 2)
-  advanceDecline    Decimal?  @db.Decimal(5, 2)
-  
-  recordedAt        DateTime  @default(now())
-  
+  vixValue       Decimal? @db.Decimal(5, 2)
+  putCallRatio   Decimal? @db.Decimal(5, 2)
+  marketMomentum String? // BULLISH, BEARISH, NEUTRAL
+  fiiNetFlow     Decimal? @db.Decimal(10, 2)
+  advanceDecline Decimal? @db.Decimal(5, 2)
+
+  recordedAt DateTime @default(now())
+
   @@index([market, recordedAt])
   @@index([recordedAt])
 }
@@ -273,27 +324,27 @@ model FearGreedHistory {
 // ============================================
 
 model MomentumScreenerResult {
-  id                Int       @id @default(autoincrement())
-  stockSymbol       String
-  stockName         String
-  exchange          String
-  
-  entryPrice        Decimal   @db.Decimal(10, 2)
-  stopLoss          Decimal   @db.Decimal(10, 2)
-  target            Decimal   @db.Decimal(10, 2)
-  riskRewardRatio   Decimal   @db.Decimal(3, 2)
-  
+  id          Int    @id @default(autoincrement())
+  stockSymbol String
+  stockName   String
+  exchange    String
+
+  entryPrice      Decimal @db.Decimal(10, 2)
+  stopLoss        Decimal @db.Decimal(10, 2)
+  target          Decimal @db.Decimal(10, 2)
+  riskRewardRatio Decimal @db.Decimal(3, 2)
+
   // Technical Signals
-  rsiValue          Decimal?  @db.Decimal(5, 2)
-  volumeSurge       Decimal?  @db.Decimal(5, 2)
-  priceAboveSma20   Boolean   @default(false)
-  priceAboveSma50   Boolean   @default(false)
-  
+  rsiValue        Decimal? @db.Decimal(5, 2)
+  volumeSurge     Decimal? @db.Decimal(5, 2)
+  priceAboveSma20 Boolean  @default(false)
+  priceAboveSma50 Boolean  @default(false)
+
   // Metadata
-  screenerType      String    @default("MOMENTUM") // MOMENTUM, BREAKOUT, GAP_UP
-  scannedAt         DateTime  @default(now())
-  expiresAt         DateTime  // Results valid for 24 hours
-  
+  screenerType String   @default("MOMENTUM") // MOMENTUM, BREAKOUT, GAP_UP
+  scannedAt    DateTime @default(now())
+  expiresAt    DateTime // Results valid for 24 hours
+
   @@index([scannedAt, exchange])
   @@index([screenerType, scannedAt])
 }
@@ -303,18 +354,36 @@ model MomentumScreenerResult {
 // ============================================
 
 model ApiLog {
-  id                Int       @id @default(autoincrement())
-  endpoint          String
-  method            String
-  statusCode        Int
-  responseTime      Int       // milliseconds
-  userId            Int?
-  ipAddress         String?
-  userAgent         String?
-  errorMessage      String?   @db.Text
-  
-  createdAt         DateTime  @default(now())
-  
+  id           Int     @id @default(autoincrement())
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int // milliseconds
+  userId       Int?
+  ipAddress    String?
+  userAgent    String?
+  errorMessage String? @db.Text
+
+  createdAt DateTime @default(now())
+
   @@index([createdAt])
   @@index([endpoint, statusCode])
+}
+
+// ==============================================
+// New Model
+// ==============================================
+
+model MarketSentiment {
+  id              Int      @id @default(autoincrement())
+  date            DateTime @unique @default(now())
+  fearGreedScore  Int // 0-100 scale
+  marketMomentum  Decimal  @db.Decimal(5, 2) // % stocks above 50-day MA
+  volatilityIndex Decimal  @db.Decimal(5, 2) // India VIX
+  putCallRatio    Decimal  @db.Decimal(5, 3) // Options data
+  advanceDecline  Decimal  @db.Decimal(5, 2) // Advances / Declines
+  sentiment       String // EXTREME_FEAR, FEAR, NEUTRAL, GREED, EXTREME_GREED
+  createdAt       DateTime @default(now())
+
+  @@index([date])
 }

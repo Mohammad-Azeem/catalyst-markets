@@ -6,6 +6,7 @@
   return this.toString();
 };
 
+// Routes
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -16,14 +17,27 @@ import { config } from './config';
 import logger from './utils/logger';
 import prisma from './db/prisma';
 import redis from './db/redis';
-import { websocketService } from './services/websocket';
-import { yahooFinanceService } from './services/yahooFinance';
-
-// Routes
 import stockRoutes from './routes/stocks';
 import ipoRoutes from './routes/ipos';
 import portfolioRoutes from './routes/portfolio';
 import watchlistRoutes from './routes/watchlist';
+import { websocketService } from './services/websocket';
+import { yahooFinanceService } from './services/yahooFinance';
+import sentimentRoutes from './routes/sentiment';
+import { fearGreedService } from './services/fearGreedIndex';
+import { startGMPWorker } from './workers/gmpWorker';
+import alertRoutes from './routes/alerts';
+import screenerRoutes from './routes/screener';
+import { scheduleAlertChecks } from './workers/alertWorker';
+import valuationRoutes from './routes/valuation';
+import aiRoutes from './routes/ai';
+import peerRoutes from './routes/peers';
+import newsRoutes from './routes/news';
+import allotmentRoutes from './routes/allotment';
+import eventsRoutes from './routes/events';
+import { clerkMiddleware } from '@clerk/express';
+import { startIPOWorker } from './workers/ipoWorker';
+
 
 const app = express();
 
@@ -108,10 +122,22 @@ app.get('/api/v1', (req, res) => {
   });
 });
 
+// Mount API routes
 app.use('/api/v1/stocks', stockRoutes);
 app.use('/api/v1/ipos', ipoRoutes);
 app.use('/api/v1/portfolio', portfolioRoutes);
 app.use('/api/v1/watchlist', watchlistRoutes);
+app.use('/api/v1/sentiment', sentimentRoutes);
+app.use('/api/v1/alerts', alertRoutes);
+app.use('/api/v1/screener', screenerRoutes);
+app.use('/api/v1/valuation', valuationRoutes);
+app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/peers', peerRoutes);
+app.use('/api/v1/news', newsRoutes);
+app.use('/api/v1/allotment', allotmentRoutes);
+app.use('/api/v1/events', eventsRoutes);
+app.use(clerkMiddleware());
+
 
 // ============================================
 // ERROR HANDLING
@@ -163,7 +189,29 @@ const startServer = async () => {
     websocketService.initialize(server);
     logger.info('✅ WebSocket initialized');
 
-    
+    // Update Fear/Greed Index daily at 4 PM (after market close)
+    cron.schedule('0 16 * * 1-5', async () => {
+      logger.info('📊 Calculating daily Fear/Greed Index...');
+      try {
+        const data = await fearGreedService.calculateIndex();
+        await fearGreedService.saveSentiment(data);
+        logger.info(`✅ Fear/Greed: ${data.score} (${data.sentiment})`);
+      } catch (error) {
+        logger.error('Failed to update Fear/Greed:', error);
+      }
+    }, {
+      timezone: 'Asia/Kolkata',
+    });
+
+    logger.info('📅 Fear/Greed calculation scheduled (4 PM IST daily)');
+
+    // Schedule price alert checks 
+    //scheduleAlertChecks();
+
+    // Start GMP worker
+    startGMPWorker();
+  
+    startIPOWorker();
 
   } catch (error) {
     logger.error('❌ Failed to start server', error);

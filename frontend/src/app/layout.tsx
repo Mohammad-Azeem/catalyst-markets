@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import Navbar from '@/components/Navbar';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+
 
 export const metadata: Metadata = {
   title: 'Catalyst Markets – NSE & NASDAQ Intelligence',
@@ -24,8 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <html lang="en">
         <body style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-          <Navbar />
-          <main>{children}</main>
+          <ThemeProvider>
+            <Navbar />
+            <main>{children}</main>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

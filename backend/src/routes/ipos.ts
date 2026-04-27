@@ -273,4 +273,52 @@ router.post(
   }
 );
 
+// AI Analysis endpoint
+router.post('/:id/analyze', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const insight = await aiIPOAnalyzer.analyzeIPO(id);
+    
+    if (!insight) {
+      return res.status(404).json({ error: 'IPO not found' });
+    }
+    
+    res.json({ data: insight });
+  } catch (error) {
+    logger.error('AI analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze IPO' });
+  }
+});
+
+// Scrape latest IPOs
+router.post('/scrape', async (req, res) => {
+  try {
+    const count = await ipoScraper.updateDatabase();
+    res.json({ success: true, updated: count });
+  } catch (error) {
+    logger.error('Scrape error:', error);
+    res.status(500).json({ error: 'Failed to scrape IPOs' });
+  }
+});
+
+// Get IPOs with AI insights
+router.get('/with-insights', async (req, res) => {
+  try {
+    const ipos = await prisma.iPO.findMany({
+      where: {
+        advisorVerdict: { not: null },
+      },
+      orderBy: [
+        { status: 'asc' },
+        { closeDate: 'desc' },
+      ],
+    });
+    
+    res.json({ data: ipos, count: ipos.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch IPOs' });
+  }
+});
+
+
 export default router;

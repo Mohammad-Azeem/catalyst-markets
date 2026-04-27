@@ -3,16 +3,25 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart2, Calendar, Briefcase, Star, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Calendar, Briefcase, Star, Menu, X, Bell, MessageSquare, Newspaper, PieChart } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import ThemeToggle from './ThemeToggle';
+import ScreenerPage from '@/app/screener/page';
+import ChatPage from '@/app/chat/page';
 
 const links = [
   { href: '/',          label: 'Dashboard', icon: LayoutDashboard },
   { href: '/stocks',    label: 'Stocks',    icon: BarChart2 },
-  { href: '/ipos',      label: 'IPOs',      icon: Calendar },
+  { href: '/ipos',      label: 'IPOs',      icon: PieChart },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/watchlist', label: 'Watchlist', icon: Star },
+  { href: '/screener',  label: 'Screener',  icon: BarChart2 },
+  { href: '/alerts',    label: 'Alerts',    icon: Bell },
+  { href: '/chat',      label: 'Chat',      icon: MessageSquare },
+  { href: '/news',      label: 'News',      icon: Newspaper },
+  { href: '/events',    label: 'Events',    icon: Calendar }
+
 ];
 
 export default function Navbar() {
@@ -21,6 +30,7 @@ export default function Navbar() {
   const { isConnected } = useWebSocket();
 
   return (
+    
     <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgba(7,9,15,0.88)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'flex', alignItems:'center', height:60, gap:32 }}>
@@ -50,6 +60,7 @@ export default function Navbar() {
           </div>
 
           {/* Right */}
+          
           <div style={{ display:'flex', alignItems:'center', gap:8, marginLeft:'auto' }}>
             <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 11px', borderRadius:99, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
               <div className={isConnected ? 'dot-live' : 'dot-dead'} />
@@ -57,6 +68,7 @@ export default function Navbar() {
                 {isConnected ? 'LIVE' : 'OFFLINE'}
               </span>
             </div>
+            <ThemeToggle />
             <button style={{ position:'relative', width:34, height:34, borderRadius:8, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--txt-2)' }}>
               <Bell size={14} />
               <span style={{ position:'absolute', top:8, right:8, width:5, height:5, borderRadius:'50%', background:'var(--red)' }} />
@@ -67,6 +79,8 @@ export default function Navbar() {
             </button>
           </div>
           
+          
+
           <SignedOut>
             <Link href="/sign-in" className="btn btn-primary btn-sm">
               Sign In
@@ -85,6 +99,8 @@ export default function Navbar() {
               }}
             />
           </SignedIn>
+
+          
 
         </div>
 

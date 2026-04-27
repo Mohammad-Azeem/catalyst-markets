@@ -24,9 +24,9 @@ export interface IPODetails {
   lotSize: number;
   gmpPercent?: number | Decimal;
   retailSubscription?: number | Decimal;
-  hniSubscription?: number;
-  qibSubscription?: number;
-  totalSubscription?: number;
+  hniSubscription?: number | Decimal;
+  qibSubscription?: number | Decimal;
+  totalSubscription?: number | Decimal;
   advisorVerdict?: string;
   advisorScore?: number;
   status: string;

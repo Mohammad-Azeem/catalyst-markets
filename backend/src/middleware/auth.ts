@@ -1,9 +1,9 @@
+//1.
 import { Request, Response, NextFunction } from 'express';
 import { clerkClient } from '@clerk/clerk-sdk-node';
 
 export interface AuthRequest extends Request {
   userId?: string;
-  user?: any;
 }
 
 export const authenticate = async (
@@ -12,30 +12,86 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   try {
-    // Get token from Authorization header
     const authHeader = req.headers.authorization;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized - No token provided' });
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
     }
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Verify token with Clerk (NEW API v5 method)
-    try {
-      const verified = await clerkClient.verifyToken(token);
-      
-      // Attach userId to request
-      req.userId = verified.sub; // 'sub' contains the user ID
-      return next();
-    } catch (verifyError) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    return res.status(401).json({ error: 'Authentication failed' });
+    const session = await clerkClient.sessions.verifySession(token, token);
+
+    // Verify with Clerk
+    //const { userId } = await clerkClient.verifyToken(token, {
+    //  secretKey: process.env.CLERK_SECRET_KEY,
+    //  issuer: process.env.CLERK_FRONTEND_API,
+    //});
+
+    req.userId = session.userId as string;      // changed but maybe incorect
+    
+    // Gives a failed to fetch error
+    // ✅ Decode JWT to get userId (Clerk tokens are signed JWTs)
+    //const base64Url = token.split('.')[1];
+    //const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    //const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+    
+    //req.userId = payload.sub; // sub = subject = userId
+    
+    return next();
+  } catch (error: any) {
+    console.error('Auth error:', error.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
+
+
+/*
+// After 1
+
+import { Request, Response, NextFunction } from 'express';
+import { clerkClient } from '@clerk/clerk-sdk-node';
+import { clerkMiddleware, getAuth } from '@clerk/express';
+
+export interface AuthRequest extends Request {
+  userId?: string;
+}
+
+export const authenticate = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    // Verify with Clerk
+    const { userId } = await clerkClient.verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+      issuer: process.env.CLERK_FRONTEND_API,
+    });
+  
+
+    req.userId = userId as string;
+    //req.userId = verified.sub; // Clerk uses 'sub' for userId in the JWT payload;
+
+    return next();
+  } catch (error: any) {
+    console.error('Auth error:', error.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+*/
+
+
+
+
 
 /*
 import { Request, Response, NextFunction } from 'express';

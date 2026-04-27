@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, ArrowUpRight, Zap, Shield, BarChart2, ChevronRight } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import FearGreedGauge from '@/components/FearGreedGauge';
 
 interface Stock { 
   id:number; 
@@ -148,7 +149,7 @@ export default function HomePage() {
 
           {/* Right column */}
           <div style={{display:'flex',flexDirection:'column',gap:18}}>
-
+            <FearGreedGauge />
             {/* IPO panel */}
             <div className="card anim-up-2" style={{overflow:'hidden'}}>
               <div style={{padding:'18px 20px 14px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
